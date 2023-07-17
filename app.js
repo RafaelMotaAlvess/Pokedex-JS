@@ -41,12 +41,16 @@ const getPokemonsType = async (pokeApiResults) => {
 
 const getPokemonsIds = (pokeApiResults) =>
   pokeApiResults.map(({ url }) => {
+    const urlAsArray = DOMPurify.sanitize(url).split("/");
     return urlAsArray.at(urlAsArray.length - 2);
   });
 
 const getPokemonsImgs = async (ids) => {
   const fulfilled = await getOnlyFulfilled({
     arr: ids,
+    func: (id) => {
+      return fetch(`./assets/img/${id}.png`);
+    },
   });
 
   return fulfilled.map((response) => response.value.url);
