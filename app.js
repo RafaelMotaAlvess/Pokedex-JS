@@ -36,12 +36,14 @@ const getPokemonsType = async (pokeApiResults) => {
   const pokemons = await Promise.all(pokePromises);
   return pokemons.map((fulfilled) =>
     fulfilled.types.map((info) => info.type.name)
+    fulfilled.types.map((info) => DOMPurify.sanitize(info.type.name))
   );
 };
 
 const getPokemonsIds = (pokeApiResults) =>
   pokeApiResults.map(({ url }) => {
     const urlAsArray = url.split("/");
+    const urlAsArray = DOMPurify.sanitize(url.split("/"));
     return urlAsArray.at(urlAsArray.length - 2);
   });
 
