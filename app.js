@@ -35,22 +35,18 @@ const getPokemonsType = async (pokeApiResults) => {
   const pokePromises = fulfilled.map((url) => url.value.json());
   const pokemons = await Promise.all(pokePromises);
   return pokemons.map((fulfilled) =>
-    fulfilled.types.map((info) => info.type.name)
     fulfilled.types.map((info) => DOMPurify.sanitize(info.type.name))
   );
 };
 
 const getPokemonsIds = (pokeApiResults) =>
   pokeApiResults.map(({ url }) => {
-    const urlAsArray = url.split("/");
-    const urlAsArray = DOMPurify.sanitize(url.split("/"));
     return urlAsArray.at(urlAsArray.length - 2);
   });
 
 const getPokemonsImgs = async (ids) => {
   const fulfilled = await getOnlyFulfilled({
     arr: ids,
-    func: (id) => fetch(`./assets/img/${id}.png`),
   });
 
   return fulfilled.map((response) => response.value.url);
@@ -83,9 +79,39 @@ const getPokemons = async () => {
   }
 };
 
+const renderPokemons = (pokemons) => {
+  const ul = document.querySelector('[data-js="pokemons-list"]');
+  const fragment = document.createDocumentFragment();
+
+  pokemons.forEach(({ id, name, types, imgUrl }) => {
+    const li = document.createElement("li");
+    const img = document.createElement("img");
+    const nameContainer = document.createElement("h2");
+    const typeContainer = document.createElement("p");
+
+    const [firstType] = types;
+    img.setAttribute("src", imgUrl);
+    img.setAttribute("alt", name);
+    img.setAttribute("class", "card-image");
+    li.setAttribute("class", `card ${firstType}`);
+    li.style.setProperty("--type-color", getTypeColor(firstType));
+
+    nameContainer.textContent = `${id}. ${name[0].toUpperCase()}${name.slice(
+      1
+    )}`;
+    typeContainer.textContent =
+      types.length > 1 ? types.join(" | ") : firstType;
+    li.append(img, nameContainer, typeContainer);
+
+    fragment.append(li);
+  });
+
+  ul.append(fragment);
+};
+
 const handlePageLoaded = async () => {
   const pokemons = await getPokemons();
-  console.log(pokemons);
+  renderPokemons(pokemons);
 };
 
 handlePageLoaded();
